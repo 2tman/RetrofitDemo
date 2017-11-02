@@ -1,19 +1,28 @@
 package iandroid.club.retrofitdemo;
 
+import android.app.Activity;
+import android.widget.ImageView;
+
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.orhanobut.logger.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import iandroid.club.retrofitdemo.api.ICourseBiz;
 import iandroid.club.retrofitdemo.bean.ChapterList;
 import iandroid.club.retrofitdemo.bean.Course;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Multipart;
 
 /**
  * @Description:
@@ -21,6 +30,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * @Time: 2017/11/1
  */
 public class RetrofitTest {
+
+    public static final String baseUrl = "http://192.168.0.107:8080/courses/";
 
     /**
      * 除了gson数据转换，还有如下：
@@ -37,7 +48,7 @@ public class RetrofitTest {
 
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.0.107:8080/courses/")
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         ICourseBiz courseBiz = retrofit.create(ICourseBiz.class);
@@ -76,7 +87,7 @@ public class RetrofitTest {
      */
     public static void getDynamicUrlData(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.0.107:8080/courses/")
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         ICourseBiz courseBiz = retrofit.create(ICourseBiz.class);
@@ -100,7 +111,7 @@ public class RetrofitTest {
      */
     public static void getByUrlQuery(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.0.107:8080/courses/")
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         ICourseBiz courseBiz = retrofit.create(ICourseBiz.class);
@@ -125,7 +136,7 @@ public class RetrofitTest {
      */
     public static void postCourse(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.0.107:8080/courses/")
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         ICourseBiz courseBiz = retrofit.create(ICourseBiz.class);
@@ -154,7 +165,7 @@ public class RetrofitTest {
      */
     public static void postCourseForm(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.0.107:8080/courses/")
+                .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         ICourseBiz courseBiz = retrofit.create(ICourseBiz.class);
@@ -169,6 +180,36 @@ public class RetrofitTest {
             @Override
             public void onFailure(Call<Course> call, Throwable t) {
 
+            }
+        });
+    }
+
+    /**
+     * post 文件上传
+     */
+    public static void postFile(final Activity activity, File file, final ImageView imageView){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        ICourseBiz courseBiz = retrofit.create(ICourseBiz.class);
+
+
+        RequestBody photoRequestBody = RequestBody.create(MediaType.parse("image/jpg"), file);
+        MultipartBody.Part photo = MultipartBody.Part.createFormData("file", System.currentTimeMillis()+".png", photoRequestBody);
+        Call<Course> courseCall = courseBiz.doUpload(photo,
+                RequestBody.create(null, "abcdeft"));
+        courseCall.enqueue(new Callback<Course>() {
+            @Override
+            public void onResponse(Call<Course> call, Response<Course> response) {
+                Course course = response.body();
+                Logger.d("文件上传结果："+getGson(response.body()));
+                Glide.with(activity).load(course.getImgPath()).into(imageView);
+            }
+
+            @Override
+            public void onFailure(Call<Course> call, Throwable t) {
+                Logger.e(t.getMessage());
             }
         });
     }
