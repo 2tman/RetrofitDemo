@@ -18,6 +18,7 @@ public class Course {
     private String levelDesc;
     private String descr;
     private List<ChapterList> chapterList;
+    private List<String> imagesList;
     public void setCourseId(int courseId) {
          this.courseId = courseId;
      }
@@ -81,4 +82,12 @@ public class Course {
          return chapterList;
      }
 
+
+    public List<String> getImageList() {
+        return imagesList;
+    }
+
+    public void setImageList(List<String> imageList) {
+        this.imagesList = imageList;
+    }
 }

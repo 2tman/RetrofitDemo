@@ -1,11 +1,13 @@
 package iandroid.club.retrofitdemo.api;
 
 import java.util.List;
+import java.util.Map;
 
 import iandroid.club.retrofitdemo.bean.ChapterList;
 import iandroid.club.retrofitdemo.bean.Course;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
@@ -14,6 +16,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
+import retrofit2.http.PartMap;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -72,5 +75,31 @@ public interface ICourseBiz {
      */
     @Multipart  //允许多个@Part，第一个未上传的文件，其余两个均为简单的键值对
     @POST("doUploadSingle")
-    Call<Course> doUpload(@Part MultipartBody.Part photo, @Part("title") RequestBody article);
+    Call<Course> doUpload(@Part MultipartBody.Part photo,
+                          @Part("title") RequestBody article);
+
+    /**
+     * 多文件混合上传 多个@Part，每个Part对应一个RequestBody
+     * @param photos
+     * @param content
+     * @return
+     */
+    @Multipart  //允许多个@Part，第一个未上传的文件，其余两个均为简单的键值对
+    @POST("doUploadMulti2")
+    Call<Course> doUploadMultiPart(@Part List<MultipartBody.Part> photos,
+                               @Part("title") RequestBody title,
+                               @Part("content") RequestBody content);
+
+    /**
+     * 多文件混合上传 多个@Part，每个Part对应一个RequestBody
+     * @param title
+     * @param content
+     * @return
+     */
+    @POST("doUploadMulti2")
+    Call<Course> doUploadMultiBody(@Part("title") RequestBody title,
+                                   @Part("content") RequestBody content);
+
+    @GET("")
+    Call<ResponseBody> downloadTest();
 }

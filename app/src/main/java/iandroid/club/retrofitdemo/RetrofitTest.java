@@ -9,7 +9,11 @@ import com.orhanobut.logger.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import iandroid.club.retrofitdemo.api.ICourseBiz;
 import iandroid.club.retrofitdemo.bean.ChapterList;
@@ -17,6 +21,7 @@ import iandroid.club.retrofitdemo.bean.Course;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -212,6 +217,94 @@ public class RetrofitTest {
                 Logger.e(t.getMessage());
             }
         });
+    }
+
+    /**
+     * post 多文件上传
+     */
+    public static void postMultiFile(final Activity activity,
+                                     File file, final ImageView imageView){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        ICourseBiz courseBiz = retrofit.create(ICourseBiz.class);
+
+        List<File> files = new ArrayList<>(2);
+        files.add(file);
+        files.add(file);
+
+//        MultipartBody multipartBody = filesToMutipartBody(files);
+
+
+        Call<Course> courseCall = courseBiz.doUploadMultiPart(filesToMultipartBodyParts(files),
+                RequestBody.create(null, "123"),RequestBody.create(null, "456"));
+        courseCall.enqueue(new Callback<Course>() {
+            @Override
+            public void onResponse(Call<Course> call, Response<Course> response) {
+                Course course = response.body();
+                Logger.json("文件上传结果："+getGson(response.body()));
+                Glide.with(activity).load(course.getImgPath()).into(imageView);
+            }
+
+            @Override
+            public void onFailure(Call<Course> call, Throwable t) {
+                Logger.e(t.getMessage());
+            }
+        });
+
+
+    }
+
+    /**
+     * 下载测试
+     */
+    public static void doDownloadTest(){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://www.baidu.com")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        ICourseBiz courseBiz = retrofit.create(ICourseBiz.class);
+
+        Call<ResponseBody> courseCall = courseBiz.downloadTest();
+        courseCall.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                InputStream is = response.body().byteStream();
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+            }
+        });
+    }
+
+    public static MultipartBody filesToMutipartBody(List<File> files){
+        MultipartBody.Builder builder = new MultipartBody.Builder();
+        for (File file:files){
+            RequestBody requestBody = RequestBody.create(MediaType.parse("image/png"), file);
+            builder.addFormDataPart("file", file.getName(), requestBody);
+        }
+        builder.setType(MultipartBody.FORM);
+        MultipartBody multipartBody = builder.build();
+        return multipartBody;
+    }
+
+    /**
+     * file转化为MultipartBody.Part
+     * @param files
+     * @return
+     */
+    public static List<MultipartBody.Part> filesToMultipartBodyParts(List<File> files){
+        List<MultipartBody.Part> parts = new ArrayList<>(files.size());
+        for (File file:files){
+            RequestBody requestBody = RequestBody.create(MediaType.parse("image/png"), file);
+            MultipartBody.Part part =MultipartBody.Part.createFormData("file",
+                    file.getName(), requestBody);
+            parts.add(part);
+        }
+        return parts;
     }
 
     private static String getGson(Object obj){
